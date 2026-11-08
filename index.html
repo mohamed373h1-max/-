@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منصة المتفوق للدراسة والإنتاجية</title>
+  <!-- مكتبات التصميم والأيقونات والخطوط -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- مكتبة الرسوم البيانية للوحة تحكم المالك -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- مكتبة PDF.js لتشغيل ملفات PDF الحقيقية -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            cairo: ['Cairo', 'sans-serif'],
+            quran: ['Amiri', 'serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      user-select: none;
+    }
+    .font-quran {
+      font-family: 'Amiri', serif;
+      line-height: 2.5;
+    }
+    .mushaf-card {
+      background: #fdfbf7;
+      box-shadow: inset 0 0 40px rgba(180, 150, 100, 0.18);
+    }
+    .dark .mushaf-card {
+      background: #1e293b;
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.35);
+    }
+    .ayah-marker {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid #d97706;
+      color: #b45309;
+      font-size: 0.8rem;
+      margin: 0 4px;
+      font-family: 'Cairo', sans-serif;
+      font-weight: bold;
+    }
+    .dark .ayah-marker {
+      border-color: #f59e0b;
+      color: #fbbf24;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #10b981;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+  <div class="flex h-screen overflow-hidden">
+    
+    <!-- ========================================== -->
+    <!-- الشريط الجانبي للتنقل بين الأقسام -->
+    <!-- ========================================== -->
+    <aside id="sidebar" class="w-64 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col z-30">
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-600/20">
+          <i class="fa-solid fa-graduation-cap text-lg"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-base leading-tight">منصة المتفوق</h1>
+          <p class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">مساعدك الدراسي الشامل</p>
+        </div>
+      </div>
+
+      <nav class="flex-1 p-3 space-y-1.5 overflow-y-auto text-xs font-bold">
+        <button onclick="switchTab('pomodoro')" id="btn-tab-pomodoro" class="tab-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
+          <i class="fa-solid fa-stopwatch w-5 text-center"></i>
+          <span>المؤقت الدراسي</span>
+          <span id="nav-timer-pill" class="mr-auto font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-200">25:00</span>
+        </button>
+
+        <button onclick="switchTab('tasks')" id="btn-tab-tasks" class="tab-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-list-check w-5 text-center"></i>
+          <span>المهام اليومية</span>
+          <span id="nav-task-count" class="mr-auto font-mono text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800">0</span>
+        </button>
+
+        <button onclick="switchTab('schedule')" id="btn-tab-schedule" class="tab-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-calendar-week w-5 text-center"></i>
+          <span>الجدول الأسبوعي</span>
+        </button>
+
+        <button onclick="switchTab('pdf')" id="btn-tab-pdf" class="tab-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-file-pdf w-5 text-center text-red-500"></i>
+          <span>قارئ الكتب والملازم</span>
+        </button>
+
+        <button onclick="switchTab('calculator')" id="btn-tab-calculator" class="tab-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-calculator w-5 text-center text-indigo-500"></i>
+          <span>الآلة الحاسبة</span>
+        </button>
+
+        <button onclick="switchTab('quran')" id="btn-tab-quran" class="tab-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-book-quran w-5 text-center text-amber-500"></i>
+          <span>المصحف والتفسير</span>
+          <span class="mr-auto text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 font-bold">114 سورة</span>
+        </button>
+
+        <button onclick="switchTab('youtube')" id="btn-tab-youtube" class="tab-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-brands fa-youtube w-5 text-center text-red-600"></i>
+          <span>يوتيوب للدراسة</span>
+        </button>
+
+        <div class="pt-2 border-t border-slate-200 dark:border-slate-800 my-1"></div>
+
+        <button onclick="switchTab('owner')" id="btn-tab-owner" class="tab-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-chart-line w-5 text-center text-indigo-500"></i>
+          <span>لوحة تحكم المالك</span>
+          <span class="mr-auto text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-bold">Google</span>
+        </button>
+      </nav>
+
+      <!-- أسفل القائمة الجانبية -->
+      <div class="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2 truncate">
+          <i class="fa-solid fa-circle-user text-emerald-600 text-base"></i>
+          <span id="user-display" class="font-bold truncate">المالك والمدير</span>
+        </div>
+        <button onclick="toggleTheme()" title="الوضع الليلي / النهاري" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:text-emerald-500">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ========================================== -->
+    <!-- مساحة العمل الرئيسية -->
+    <!-- ========================================== -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      
+      <!-- الشريط العلوي -->
+      <header class="h-14 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 px-6 flex items-center justify-between z-20">
+        <h2 id="view-title" class="font-bold text-sm">مؤقت بومودورو الدراسي (عائم ويعمل في الخلفية)</h2>
+        <div class="flex items-center gap-2">
+          <!-- زر إظهار/إخفاء المؤقت العائم الصغير المتحرك -->
+          <button onclick="toggleFloatWidget()" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 flex items-center gap-1.5">
+            <i class="fa-solid fa-up-right-from-square"></i>
+            <span>المؤقت العائم المصغر</span>
+          </button>
+
+          <!-- زر تجربة صوت جرس التنبيه -->
+          <button onclick="playBellSound()" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 flex items-center gap-1" title="تجربة صوت الجرس">
+            <i class="fa-solid fa-bell text-amber-500"></i>
+            <span>صوت الجرس</span>
+          </button>
+
+          <!-- زر تسجيل الدخول بحساب Google -->
+          <button onclick="openAuthModal()" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1.5">
+            <i class="fa-brands fa-google"></i>
+            <span>تسجيل الدخول</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- محتوى الأقسام -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+
+        <!-- ========================================== -->
+        <!-- القسم 1: المؤقت الدراسي (بومودورو) -->
+        <!-- ========================================== -->
+        <section id="tab-pomodoro" class="tab-content max-w-xl mx-auto space-y-6">
+          <div class="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 text-center shadow-sm">
+            
+            <!-- اختيار المرحلة -->
+            <div class="flex justify-center gap-2 mb-6 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl text-xs font-bold">
+              <button onclick="changeTimerMode('focus')" id="mode-focus" class="flex-1 py-2 rounded-xl bg-emerald-600 text-white shadow">جلسة مذاكرة</button>
+              <button onclick="changeTimerMode('short')" id="mode-short" class="flex-1 py-2 rounded-xl text-slate-600 dark:text-slate-400">استراحة قصيرة</button>
+              <button onclick="changeTimerMode('long')" id="mode-long" class="flex-1 py-2 rounded-xl text-slate-600 dark:text-slate-400">استراحة طويلة</button>
+            </div>
+            
+            <!-- شاشة العد التنازلي -->
+            <div class="my-8">
+              <div id="timer-digits" class="font-mono text-6xl sm:text-7xl font-black text-slate-900 dark:text-white tracking-tight">25:00</div>
+              <p id="timer-status-desc" class="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-3">
+                <i class="fa-solid fa-volume-high ml-1"></i>يعمل في الخلفية ويرن صوت الجرس تلقائياً عند انتهاء الجلسة
+              </p>
+            </div>
+
+            <!-- أزرار التحكم -->
+            <div class="flex justify-center items-center gap-4">
+              <button onclick="resetTimer()" title="إعادة ضبط" class="w-12 h-12 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 flex items-center justify-center text-base">
+                <i class="fa-solid fa-rotate-left"></i>
+              </button>
+              <button onclick="toggleTimer()" id="btn-timer-main" class="px-10 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/30 flex items-center gap-2.5">
+                <i id="timer-main-icon" class="fa-solid fa-play"></i>
+                <span id="timer-main-text">ابدأ الجلسة</span>
+              </button>
+              <button onclick="skipTimer()" title="تخطي للمرحلة التالية" class="w-12 h-12 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 flex items-center justify-center text-base">
+                <i class="fa-solid fa-forward-step"></i>
+              </button>
+            </div>
+
+            <!-- تحديد الدقائق حسب رغبة المستخدم -->
+            <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-xs">
+              <h4 class="font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-sliders text-emerald-500"></i>
+                <span>تحديد الدقائق التي تريد مذاكرتها (مثال: 25 دقيقة أو حسب رغبتك):</span>
+              </h4>
+              <div class="grid grid-cols-3 gap-3 max-w-sm mx-auto">
+                <div>
+                  <label class="block text-slate-500 mb-1 text-[11px]">دقائق المذاكرة</label>
+                  <input type="number" id="input-min-focus" value="25" min="1" max="180" onchange="applyCustomMinutes()" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-xl text-center font-bold bg-slate-50 dark:bg-slate-800 text-sm">
+                </div>
+                <div>
+                  <label class="block text-slate-500 mb-1 text-[11px]">استراحة قصيرة</label>
+                  <input type="number" id="input-min-short" value="5" min="1" max="60" onchange="applyCustomMinutes()" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-xl text-center font-bold bg-slate-50 dark:bg-slate-800 text-sm">
+                </div>
+                <div>
+                  <label class="block text-slate-500 mb-1 text-[11px]">استراحة طويلة</label>
+                  <input type="number" id="input-min-long" value="15" min="1" max="90" onchange="applyCustomMinutes()" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-xl text-center font-bold bg-slate-50 dark:bg-slate-800 text-sm">
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- القسم 2: المهام اليومية -->
+        <!-- ========================================== -->
+        <section id="tab-tasks" class="tab-content hidden max-w-2xl mx-auto space-y-4">
+          <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h3 class="font-bold text-base mb-1">قائمة المهام اليومية</h3>
+            <p class="text-xs text-slate-500 mb-4">اكتب مهامك الدراسية اليومية وتابع إنجازها أولاً بأول</p>
+            
+            <form onsubmit="handleAddTask(event)" class="flex flex-col sm:flex-row gap-2 mb-5">
+              <input type="text" id="task-title-input" placeholder="اكتب المهمة اليومية هنا (مثال: مذاكرة الفصل الأول فيزياء)..." required class="flex-1 p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <select id="task-prio-input" class="p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 font-semibold">
+                <option value="high">أولوية عالية</option>
+                <option value="medium" selected>أولوية متوسطة</option>
+                <option value="low">أولوية عادية</option>
+              </select>
+              <button type="submit" class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700">إضافة مهمة</button>
+            </form>
+
+            <div id="tasks-container" class="space-y-2.5"></div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- القسم 3: الجدول الأسبوعي -->
+        <!-- ========================================== -->
+        <section id="tab-schedule" class="tab-content hidden max-w-3xl mx-auto space-y-4">
+          <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex justify-between items-center mb-4">
+              <div>
+                <h3 class="font-bold text-base">الجدول الأسبوعي للدراسة</h3>
+                <p class="text-xs text-slate-500">وزّع موادك ومواعيدك على مدار أيام الأسبوع من السبت إلى الجمعة</p>
+              </div>
+              <button onclick="openScheduleModal()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 hover:bg-emerald-700">
+                <i class="fa-solid fa-plus"></i>
+                <span>إضافة حصة</span>
+              </button>
+            </div>
+
+            <!-- أزرار أيام الأسبوع -->
+            <div class="flex gap-1.5 overflow-x-auto pb-3 border-b border-slate-200 dark:border-slate-800" id="schedule-days-nav"></div>
+            
+            <!-- حصص اليوم المختار -->
+            <div id="schedule-day-items" class="mt-4 space-y-2.5"></div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- القسم 4: قارئ الكتب والملازم (PDF) -->
+        <!-- ========================================== -->
+        <section id="tab-pdf" class="tab-content hidden max-w-4xl mx-auto space-y-4">
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <label class="cursor-pointer px-3.5 py-2 bg-emerald-600 text-white rounded-xl font-bold flex items-center gap-1.5 hover:bg-emerald-700">
+                  <i class="fa-solid fa-file-arrow-up"></i>
+                  <span>رفع ملف PDF</span>
+                  <input type="file" id="pdf-file-picker" accept="application/pdf" class="hidden" onchange="handlePdfUpload(event)">
+                </label>
+                <span id="pdf-name-label" class="text-slate-600 dark:text-slate-400 font-semibold truncate max-w-xs">ملزمة المراجعة الشاملة (نموذج مدمج)</span>
+              </div>
+
+              <!-- التنقل برقم الصفحة -->
+              <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl font-mono text-xs">
+                <button onclick="navPdf(-1)" title="الصفحة السابقة" class="hover:text-emerald-500 px-1"><i class="fa-solid fa-chevron-right"></i></button>
+                <span>صفحة</span>
+                <input type="number" id="pdf-input-page" value="1" min="1" max="5" onchange="jumpPdf(this.value)" class="w-12 text-center bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded py-0.5 font-bold">
+                <span>من <span id="pdf-max-page">5</span></span>
+                <button onclick="navPdf(1)" title="الصفحة التالية" class="hover:text-emerald-500 px-1"><i class="fa-solid fa-chevron-left"></i></button>
+              </div>
+            </div>
+
+            <!-- منطقة عرض صفحات الـ PDF -->
+            <div class="min-h-[480px] bg-slate-50 dark:bg-slate-950 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 mt-4 flex flex-col items-center justify-between">
+              <canvas id="pdf-canvas-render" class="hidden shadow-lg rounded max-w-full"></canvas>
+              <div id="pdf-body-text" class="w-full max-w-2xl"></div>
+              <div class="w-full text-center text-[11px] text-slate-400 pt-4 border-t border-slate-200 dark:border-slate-800 mt-4">
+                قارئ الكتب والملازم المدمج - منصة المتفوق
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- القسم 5: الآلة الحاسبة العلمية -->
+        <!-- ========================================== -->
+        <section id="tab-calculator" class="tab-content hidden max-w-sm mx-auto space-y-4">
+          <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl">
+            <h3 class="font-bold text-sm mb-3 text-center">الآلة الحاسبة العلمية المدمجة</h3>
+            <div class="bg-slate-100 dark:bg-slate-950 p-4 rounded-2xl text-left font-mono mb-4 border border-slate-200 dark:border-slate-800">
+              <div id="calc-history-bar" class="text-xs text-slate-400 h-4 truncate"></div>
+              <div id="calc-screen" class="text-3xl font-black text-slate-900 dark:text-white overflow-x-auto">0</div>
+            </div>
+            <div class="grid grid-cols-4 gap-2 text-sm font-bold font-mono">
+              <button onclick="calcSci('sin')" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-indigo-600">sin</button>
+              <button onclick="calcSci('cos')" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-indigo-600">cos</button>
+              <button onclick="calcSci('sqrt')" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-indigo-600">√</button>
+              <button onclick="calcClearScreen()" class="p-2.5 rounded-xl bg-red-100 text-red-600">AC</button>
+              <button onclick="calcAddChar('7')" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700">7</button>
+              <button onclick="calcAddChar('8')" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700">8</button>
+              <button onclick="calcAddChar('9')" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700">9</button>
+              <button onclick="calcAddChar('/')" class="p-3 rounded-xl bg-amber-100 text-amber-700">÷</button>
+              <button onclick="calcAddChar('4')" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700">4</button>
+              <button onclick="calcAddChar('5')" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700">5</button>
+              <button onclick="calcAddChar('6')" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700">6</button>
+              <button onclick="calcAddChar('*')" class="p-3 rounded-xl bg-amber-100 text-amber-700">×</button>
+              <button onclick="calcAddChar('1')" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700">1</button>
+              <button onclick="calcAddChar('2')" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700">2</button>
+              <button onclick="calcAddChar('3')" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700">3</button>
+              <button onclick="calcAddChar('-')" class="p-3 rounded-xl bg-amber-100 text-amber-700">−</button>
+              <button onclick="calcAddChar('0')" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700">0</button>
+              <button onclick="calcAddChar('.')" class="p-3 rounded-xl border border-slate-200 dark:border-slate-700">.</button>
+              <button onclick="calcEvaluate()" class="col-span-2 p-3 rounded-xl bg-emerald-600 text-white font-bold text-lg">=</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- القسم 6: المصحف الشريف والتفسير (114 سورة كاملة) -->
+        <!-- ========================================== -->
+        <section id="tab-quran" class="tab-content hidden max-w-4xl mx-auto space-y-4">
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">اختر السورة (جميع الـ 114 سورة):</label>
+              <select id="quran-surah-picker" onchange="selectSurah(this.value)" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-amber-500"></select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">صوت القارئ (السديس وجميع الشيوخ):</label>
+              <select id="quran-sheikh-picker" onchange="selectSheikh(this.value)" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-800">
+                <option value="sds" selected>الشيخ عبد الرحمن السديس</option>
+                <option value="afs">الشيخ مشاري راشد العفاسي</option>
+                <option value="basit">الشيخ عبد الباسط عبد الصمد</option>
+                <option value="maher">الشيخ ماهر المعيقلي</option>
+                <option value="husr">الشيخ محمود خليل الحصري</option>
+                <option value="ghamdi">الشيخ سعد الغامدي</option>
+              </select>
+            </div>
+            <div class="flex items-end gap-2">
+              <button onclick="toggleQuranRecitation()" id="btn-quran-audio" class="flex-1 py-2.5 bg-amber-500 text-white rounded-xl text-xs font-bold hover:bg-amber-600 flex items-center justify-center gap-1.5 shadow">
+                <i id="quran-audio-icon" class="fa-solid fa-play"></i>
+                <span>تشغيل التلاوة</span>
+              </button>
+              <audio id="quran-player-node" class="hidden"></audio>
+            </div>
+          </div>
+
+          <!-- تصميم صفحة المصحف الشريف -->
+          <div class="mushaf-card p-8 rounded-3xl border border-amber-200/80 dark:border-slate-800 min-h-[500px] text-center flex flex-col justify-between">
+            <div>
+              <div class="inline-block px-8 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 font-quran text-2xl font-bold mb-3">
+                سُورَةُ <span id="mushaf-surah-name">الفاتحة</span>
+              </div>
+              <p class="font-quran text-2xl text-amber-900 dark:text-amber-200 mb-6" id="mushaf-bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+              
+              <!-- نص الآيات الكريمة -->
+              <div id="mushaf-verses-area" class="font-quran text-2xl sm:text-3xl leading-[2.6] text-slate-900 dark:text-amber-50 text-justify" style="text-align-last: center;"></div>
+            </div>
+
+            <!-- التفسير الميسر للسورة والآيات -->
+            <div class="mt-8 pt-4 border-t border-amber-500/20 text-xs text-amber-900 dark:text-amber-300 text-right bg-amber-50/70 dark:bg-slate-800/70 p-4 rounded-2xl">
+              <b class="text-amber-700 dark:text-amber-400 text-sm block mb-1">
+                <i class="fa-solid fa-book-atlas ml-1"></i>التفسير الميسر وبيان المعاني:
+              </b>
+              <div id="mushaf-tafsir-area" class="leading-relaxed space-y-1 max-h-48 overflow-y-auto"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- القسم 7: يوتيوب للدراسة -->
+        <!-- ========================================== -->
+        <section id="tab-youtube" class="tab-content hidden max-w-4xl mx-auto space-y-4">
+          <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400">انسخ رابط أي فيديو تعليمي من يوتيوب وشاهده مباشرة داخل التطبيق بدون تشتيت:</label>
+            <div class="flex gap-2">
+              <input type="text" id="yt-link-input" placeholder="https://www.youtube.com/watch?v=..." class="flex-1 p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-slate-50 dark:bg-slate-800">
+              <button onclick="playCustomYt()" class="px-5 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-play"></i>
+                <span>تشغيل</span>
+              </button>
+            </div>
+
+            <div class="flex gap-2 text-xs overflow-x-auto pb-1">
+              <button onclick="setYtVideo('jfKfPfyJRdk')" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-red-50">🎧 موسيقى Lofi هادئة للتركيز</button>
+              <button onclick="setYtVideo('k8kX_2oH_lM')" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-red-50">📖 تلاوة هادئة - الشيخ السديس</button>
+              <button onclick="setYtVideo('WPni755-Krg')" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-red-50">🌧️ صوت المطر للمذاكرة</button>
+            </div>
+
+            <div class="relative w-full pb-[56.25%] bg-black rounded-2xl overflow-hidden shadow-lg">
+              <iframe id="yt-player-frame" class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/jfKfPfyJRdk" frameborder="0" allowfullscreen></iframe>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- القسم 8: لوحة تحكم المالك والتحليلات -->
+        <!-- ========================================== -->
+        <section id="tab-owner" class="tab-content hidden max-w-4xl mx-auto space-y-5">
+          <div class="bg-gradient-to-r from-indigo-900 to-slate-900 text-white p-6 rounded-3xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-lg">
+            <div>
+              <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 font-bold">لوحة المالك والمدير</span>
+              <h3 class="font-bold text-lg mt-1">إحصائيات الزوار وإدارة القنوات</h3>
+              <p class="text-xs text-indigo-200">متابعة حركة مرور المستخدمين وإدارة قنوات اليوتيوب وحساب Google</p>
+            </div>
+            <button onclick="openAuthModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-xs font-bold flex items-center gap-2">
+              <i class="fa-brands fa-google"></i>
+              <span>تسجيل الدخول بحساب Google</span>
+            </button>
+          </div>
+
+          <!-- بطاقات الإحصائيات -->
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <div class="text-2xl font-black text-indigo-600 font-mono">14,892</div>
+              <div class="text-xs text-slate-500 mt-1">إجمالي زيارات المستخدمين</div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <div class="text-2xl font-black text-emerald-600 font-mono">3,850h</div>
+              <div class="text-xs text-slate-500 mt-1">ساعات المذاكرة المسجلة</div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <div class="text-2xl font-black text-amber-500 font-mono">84.6%</div>
+              <div class="text-xs text-slate-500 mt-1">معدل إنجاز المهام</div>
+            </div>
+          </div>
+
+          <!-- الرسم البياني لحركة المرور -->
+          <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800">
+            <h4 class="font-bold text-xs mb-4">تحليلات حركة المرور اليومية للزوار</h4>
+            <div class="relative h-64">
+              <canvas id="owner-traffic-chart"></canvas>
+            </div>
+          </div>
+
+          <!-- إدارة القنوات -->
+          <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800">
+            <h4 class="font-bold text-sm mb-3">إدارة القنوات التعليمية الموصى بها</h4>
+            <form onsubmit="addOwnerChannel(event)" class="flex gap-2 mb-4">
+              <input type="text" id="owner-chan-name" placeholder="اسم القناة التعليمية..." required class="flex-1 p-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-slate-50 dark:bg-slate-800">
+              <input type="text" id="owner-chan-id" placeholder="معرف الفيديو أو الرابط..." required class="w-40 p-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 font-mono">
+              <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700">إضافة قناة</button>
+            </form>
+            <div id="owner-channels-list" class="space-y-2 text-xs"></div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- المؤقت العائم الصغير والمتحرك (Draggable Floating Timer) -->
+  <!-- ========================================== -->
+  <div id="float-widget-pill" class="fixed bottom-6 left-6 z-50 bg-slate-900 text-white p-3.5 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 cursor-move select-none hidden" style="touch-action: none;">
+    <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center">
+      <i class="fa-solid fa-stopwatch text-sm"></i>
+    </div>
+    <div>
+      <div id="float-time-digits" class="font-mono text-xl font-bold text-emerald-400">25:00</div>
+      <div class="text-[10px] text-slate-400">اسحبني لأي مكان</div>
+    </div>
+    <div class="flex items-center gap-1 border-r border-slate-700 pr-2 mr-1">
+      <button onclick="toggleTimer()" class="p-2 rounded-lg bg-emerald-600/40 text-emerald-300 hover:bg-emerald-600 text-xs">
+        <i id="float-btn-icon" class="fa-solid fa-play"></i>
+      </button>
+      <button onclick="toggleFloatWidget()" class="p-2 text-slate-400 hover:text-white text-xs">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- نافذة تسجيل الدخول بحساب Google -->
+  <!-- ========================================== -->
+  <div id="modal-google-auth" class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-xs w-full p-6 text-center space-y-4 border border-slate-200 dark:border-slate-800 shadow-2xl">
+      <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center text-2xl">
+        <i class="fa-brands fa-google"></i>
+      </div>
+      <h4 class="font-bold text-base">تسجيل الدخول عبر Google</h4>
+      <p class="text-xs text-slate-500">اختر الحساب لتفعيل صلاحيات المالك أو حفظ بياناتك</p>
+      <div class="space-y-2 text-xs">
+        <button onclick="performLogin('المالك والمدير (أحمد)')" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-500 font-bold text-right flex items-center gap-2">
+          <i class="fa-solid fa-crown text-amber-500"></i>
+          <span>حساب المالك والمدير</span>
+        </button>
+        <button onclick="performLogin('طالب متفوق')" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500 font-bold text-right flex items-center gap-2">
+          <i class="fa-solid fa-user-graduate text-emerald-500"></i>
+          <span>حساب طالب</span>
+        </button>
+      </div>
+      <button onclick="closeAuthModal()" class="text-xs text-slate-400 underline">إغلاق</button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- نافذة إضافة حصة للجدول الأسبوعي -->
+  <!-- ========================================== -->
+  <div id="modal-schedule-add" class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 space-y-4 border border-slate-200 dark:border-slate-800">
+      <h4 class="font-bold text-sm">إضافة موعد دراسي في الجدول</h4>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-500 mb-1">اسم المادة أو المراجعة:</label>
+          <input type="text" id="sched-title-inp" placeholder="مثال: مراجعة الفيزياء الحديثة" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-500 mb-1">من الساعة:</label>
+            <input type="time" id="sched-from-inp" value="09:00" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 font-mono">
+          </div>
+          <div>
+            <label class="block text-slate-500 mb-1">إلى الساعة:</label>
+            <input type="time" id="sched-to-inp" value="10:30" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 font-mono">
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+        <button onclick="closeScheduleModal()" class="px-3 py-1.5 text-slate-500">إلغاء</button>
+        <button onclick="saveScheduleSlot()" class="px-4 py-1.5 bg-emerald-600 text-white rounded-xl font-bold">حفظ الموعد</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- تنبيه علوي أنيق -->
+  <div id="toast-notify" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-2xl shadow-2xl border border-slate-700 hidden"></div>
+
+  <!-- ========================================== -->
+  <!-- البرمجة الكاملة للتطبيق (JavaScript) -->
+  <!-- ========================================== -->
+  <script>
+    // قائمة السور الـ 114 كاملة بالترتيب المصحفي
+    const ALL_114_SURAHS = [
+      "الفاتحة","البقرة","آل عمران","النساء","المائدة","الأنعام","الأعراف","الأنفال","التوبة","يونس",
+      "هود","يوسف","الرعد","إبراهيم","الحجر","النحل","الإسراء","الكهف","مريم","طه",
+      "الأنبياء","الحج","المؤمنون","النور","الفرقان","الشعراء","النمل","القصص","العنكبوت","الروم",
+      "لقمان","السجدة","الأحزاب","سبأ","فاطر","يس","الصافات","ص","الزمر","غافر",
+      "فصلت","الشورى","الزخرف","الدخان","الجاثية","الأحقاف","محمد","الفتح","الحجرات","ق",
+      "الذاريات","الطور","النجم","القمر","الرحمن","الواقعة","الحديد","المجادلة","الحشر","الممتحنة",
+      "الصف","الجمعة","المنافقون","التغابن","الطلاق","التحريم","الملك","القلم","الحاقة","المعارج",
+      "نوح","الجن","المزمل","المدثر","القيامة","الإنسان","المرسلات","النبأ","النازعات","عبس",
+      "التكوير","الانفطار","المطففين","الانشقاق","البروج","الطارق","الأعلى","الغاشية","الفجر","البلد",
+      "الشمس","الليل","الضحى","الشرح","التين","العلق","القدر","البينة","الزلزلة","العاديات",
+      "القارعة","التكاثر","العصر","الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون","النصر",
+      "المسد","الإخلاص","الفلق","الناس"
+    ];
+
+    // روابط التلاوات الصوتية لكبار الشيوخ
+    const SHEIKH_SERVERS = {
+      sds: "https://server11.mp3quran.net/sds/",
+      afs: "https://server8.mp3quran.net/afs/",
+      basit: "https://server7.mp3quran.net/basit/",
+      maher: "https://server12.mp3quran.net/maher/",
+      husr: "https://server13.mp3quran.net/husr/",
+      ghamdi: "https://server7.mp3quran.net/ghamdi/"
+    };
+
+    // حالة المؤقت الدراسي
+    let timerState = {
+      mode: 'focus',
+      durationMins: 25,
+      remainingSeconds: 25 * 60,
+      running: false,
+      intervalId: null,
+      targetTime: null,
+      customs: { focus: 25, short: 5, long: 15 }
+    };
+
+    // حالة المصحف الشريف
+    let quranState = {
+      surah: 1,
+      sheikh: 'sds',
+      playing: false
+    };
+
+    // قائمة المهام الافتراضية
+    let tasksList = [
+      { id: 1, title: 'حل مسائل التفاضل والتكامل في الرياضيات', prio: 'high', done: false },
+      { id: 2, title: 'قراءة وحفظ الورد اليومي من القرآن الكريم', prio: 'high', done: true },
+      { id: 3, title: 'مراجعة قوانين نيوتن للحركة في الفيزياء', prio: 'medium', done: false }
+    ];
+
+    // الجدول الأسبوعي
+    let scheduleMap = {
+      'السبت': ['08:00 - 10:00: رياضيات بحتة (تفاضل)', '11:00 - 12:30: قرآن كريم وتفسير', '16:00 - 18:00: فيزياء وميكانيكا'],
+      'الأحد': ['09:00 - 11:00: لغة عربية ونحو', '14:00 - 16:00: كيمياء عضوية'],
+      'الإثنين': ['10:00 - 12:00: لغة إنجليزية', '16:00 - 18:00: أحياء وجيولوجيا'],
+      'الثلاثاء': ['08:30 - 11:30: حل نماذج امتحانات شاملة'],
+      'الأربعاء': ['15:00 - 17:30: مراجعة الفيزياء المشتركة'],
+      'الخميس': ['09:00 - 11:00: تفسير القرآن والورد الأسبوعي'],
+      'الجمعة': ['16:00 - 17:00: تقييم الأسبوع والتخطيط']
+    };
+    let activeScheduleDay = 'السبت';
+
+    // قنوات لوحة تحكم المالك
+    let ownerChannels = [
+      { id: 1, name: 'قناة Lofi للدراسة والتركيز', ytId: 'jfKfPfyJRdk' },
+      { id: 2, name: 'تلاوات الشيخ عبد الرحمن السديس', ytId: 'k8kX_2oH_lM' }
+    ];
+
+    // حالة قارئ PDF
+    let pdfState = {
+      page: 1,
+      total: 5,
+      uploadedDoc: null,
+      pages: [
+        "<h5>ملخص فيزياء الحركة والقوة</h5><p class='mt-2'>القانون الأول لنيوتن: يظل الجسم الساكن ساكناً والمتحرك في خط مستقيم بسرعة ثابتة ما لم تؤثر عليه قوة خارجية تغير من حالته.</p>",
+        "<h5>معادلات الحركة بعجلة منتظمة</h5><p class='mt-2 font-mono'>1) v = v₀ + a·t<br>2) d = v₀·t + ½·a·t²<br>3) v² = v₀² + 2·a·d</p>",
+        "<h5>قواعد الاشتقاق والتفاضل الأساسية</h5><p class='mt-2 font-mono'>d/dx (xⁿ) = n·xⁿ⁻¹<br>d/dx (sin x) = cos x<br>d/dx (cos x) = -sin x</p>",
+        "<h5>الكيمياء الكهربية والخلايا الجلفانية</h5><p class='mt-2'>الأنود: القطب الذي تحدث عنده عملية الأكسدة. الكاثود: القطب الذي تحدث عنده عملية الاختزال.</p>",
+        "<h5>نصائح التفوق الدراسي وإدارة الوقت</h5><p class='mt-2'>استخدم تقنية البومودورو (25 دقيقة تركيز + 5 دقائق راحة) مع الاسترجاع النشط للمعلومة.</p>"
+      ]
+    };
+
+    function showNotice(msg) {
+      const el = document.getElementById('toast-notify');
+      el.innerText = msg;
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 2600);
+    }
+
+    // 1. توليد صوت جرس التنبيه الحقيقي عند انتهاء الجلسة (Web Audio API)
+    function playBellSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [587.33, 880, 1174.66].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.12);
+          gain.gain.setValueAtTime(0.35, ctx.currentTime + idx * 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.12 + 1.6);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.12);
+          osc.stop(ctx.currentTime + idx * 0.12 + 1.7);
+        });
+        showNotice('🔔 رن جرس التنبيه الصوتي!');
+      } catch (e) {}
+    }
+
+    // 2. المؤقت الدراسي (بومودورو خلفي وعائم)
+    function changeTimerMode(m) {
+      timerState.mode = m;
+      timerState.durationMins = timerState.customs[m];
+      timerState.remainingSeconds = timerState.durationMins * 60;
+      ['focus', 'short', 'long'].forEach(k => {
+        const b = document.getElementById('mode-' + k);
+        b.className = (k === m)
+          ? 'flex-1 py-2 rounded-xl bg-emerald-600 text-white shadow'
+          : 'flex-1 py-2 rounded-xl text-slate-600 dark:text-slate-400';
+      });
+      if (timerState.running) stopTimerInterval();
+      renderTimerText();
+    }
+
+    function toggleTimer() {
+      if (timerState.running) {
+        stopTimerInterval();
+        showNotice('تم إيقاف المؤقت مؤقتاً');
+      } else {
+        startTimerInterval();
+        showNotice('بدأت الجلسة! المؤقت يعمل معك في الخلفية');
+      }
+      updateTimerButtons();
+    }
+
+    function startTimerInterval() {
+      timerState.running = true;
+      timerState.targetTime = Date.now() + timerState.remainingSeconds * 1000;
+      timerState.intervalId = setInterval(() => {
+        timerState.remainingSeconds = Math.max(0, Math.round((timerState.targetTime - Date.now()) / 1000));
+        renderTimerText();
+
+        const m = Math.floor(timerState.remainingSeconds / 60);
+        const s = timerState.remainingSeconds % 60;
+        document.title = `(${m}:${s < 10 ? '0' : ''}${s}) منصة المتفوق`;
+
+        if (timerState.remainingSeconds <= 0) {
+          stopTimerInterval();
+          playBellSound();
+          document.title = '🔔 انتهى وقت الجلسة! - منصة المتفوق';
+          showNotice('🎉 انتهت الجلسة! يرن الآن جرس التنبيه.');
+          changeTimerMode(timerState.mode === 'focus' ? 'short' : 'focus');
+        }
+      }, 500);
+      updateTimerButtons();
+    }
+
+    function stopTimerInterval() {
+      timerState.running = false;
+      if (timerState.intervalId) clearInterval(timerState.intervalId);
+      updateTimerButtons();
+    }
+
+    function resetTimer() {
+      stopTimerInterval();
+      timerState.remainingSeconds = timerState.durationMins * 60;
+      renderTimerText();
+      showNotice('تمت إعادة ضبط المؤقت');
+    }
+
+    function skipTimer() {
+      changeTimerMode(timerState.mode === 'focus' ? 'short' : 'focus');
+    }
+
+    function applyCustomMinutes() {
+      timerState.customs.focus = Math.max(1, parseInt(document.getElementById('input-min-focus').value) || 25);
+      timerState.customs.short = Math.max(1, parseInt(document.getElementById('input-min-short').value) || 5);
+      timerState.customs.long = Math.max(1, parseInt(document.getElementById('input-min-long').value) || 15);
+      changeTimerMode(timerState.mode);
+      showNotice('تم تحديث دقائق المؤقت حسب اختيارك');
+    }
+
+    function renderTimerText() {
+      const mins = Math.floor(timerState.remainingSeconds / 60);
+      const secs = timerState.remainingSeconds % 60;
+      const str = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+      document.getElementById('timer-digits').innerText = str;
+      document.getElementById('nav-timer-pill').innerText = str;
+      document.getElementById('float-time-digits').innerText = str;
+    }
+
+    function updateTimerButtons() {
+      const text = timerState.running ? 'إيقاف مؤقت' : 'ابدأ الجلسة';
+      const ico = timerState.running ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+      document.getElementById('timer-main-text').innerText = text;
+      document.getElementById('timer-main-icon').className = ico;
+      document.getElementById('float-btn-icon').className = ico;
+    }
+
+    function toggleFloatWidget() {
+      const widget = document.getElementById('float-widget-pill');
+      widget.classList.toggle('hidden');
+    }
+
+    // تحريك المؤقت العائم في أي مكان على الشاشة (ماوس ولمس)
+    (function setupDraggablePill() {
+      const el = document.getElementById('float-widget-pill');
+      let isDragging = false, startX, startY, initLeft, initTop;
+
+      function onStart(x, y, target) {
+        if (target.tagName === 'BUTTON' || target.closest('button')) return;
+        isDragging = true;
+        startX = x;
+        startY = y;
+        const rect = el.getBoundingClientRect();
+        initLeft = rect.left;
+        initTop = rect.top;
+        el.style.bottom = 'auto';
+        el.style.left = initLeft + 'px';
+        el.style.top = initTop + 'px';
+      }
+
+      function onMove(x, y) {
+        if (!isDragging) return;
+        const dx = x - startX;
+        const dy = y - startY;
+        el.style.left = Math.max(10, Math.min(window.innerWidth - el.offsetWidth - 10, initLeft + dx)) + 'px';
+        el.style.top = Math.max(10, Math.min(window.innerHeight - el.offsetHeight - 10, initTop + dy)) + 'px';
+      }
+
+      function onEnd() { isDragging = false; }
+
+      el.addEventListener('mousedown', e => onStart(e.clientX, e.clientY, e.target));
+      window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+      window.addEventListener('mouseup', onEnd);
+
+      el.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) onStart(e.touches[0].clientX, e.touches[0].clientY, e.target);
+      }, { passive: false });
+      window.addEventListener('touchmove', e => {
+        if (isDragging && e.touches.length === 1) onMove(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: false });
+      window.addEventListener('touchend', onEnd);
+    })();
+
+    // 3. إدارة المهام اليومية
+    function renderTasks() {
+      const box = document.getElementById('tasks-container');
+      document.getElementById('nav-task-count').innerText = tasksList.length;
+      box.innerHTML = tasksList.map(t => `
+        <div class="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 ${t.done ? 'bg-slate-50 dark:bg-slate-900/40 opacity-70' : 'bg-white dark:bg-slate-800'}">
+          <div class="flex items-center gap-2.5">
+            <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTaskDone(${t.id})" class="rounded w-4 h-4 text-emerald-600 cursor-pointer">
+            <span class="text-xs ${t.done ? 'line-through text-slate-400' : 'font-bold text-slate-800 dark:text-slate-100'}">${t.title}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full ${t.prio === 'high' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}">${t.prio === 'high' ? 'مهم جداً' : 'عادي'}</span>
+          </div>
+          <button onclick="removeTask(${t.id})" class="text-slate-400 hover:text-red-500 text-xs"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      `).join('');
+    }
+
+    function handleAddTask(e) {
+      e.preventDefault();
+      const titleInp = document.getElementById('task-title-input');
+      const prioInp = document.getElementById('task-prio-input');
+      if (!titleInp.value.trim()) return;
+      tasksList.unshift({ id: Date.now(), title: titleInp.value.trim(), prio: prioInp.value, done: false });
+      titleInp.value = '';
+      renderTasks();
+      showNotice('تمت إضافة المهمة اليومية ✅');
+    }
+
+    function toggleTaskDone(id) {
+      const task = tasksList.find(x => x.id === id);
+      if (task) task.done = !task.done;
+      renderTasks();
+    }
+
+    function removeTask(id) {
+      tasksList = tasksList.filter(x => x.id !== id);
+      renderTasks();
+    }
+
+    // 4. الجدول الأسبوعي
+    function renderSchedule() {
+      const bar = document.getElementById('schedule-days-nav');
+      bar.innerHTML = Object.keys(scheduleMap).map(d => `
+        <button onclick="changeScheduleDay('${d}')" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap ${d === activeScheduleDay ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}">${d}</button>
+      `).join('');
+
+      const box = document.getElementById('schedule-day-items');
+      const items = scheduleMap[activeScheduleDay] || [];
+      box.innerHTML = items.map((it, idx) => `
+        <div class="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs flex justify-between items-center">
+          <div class="flex items-center gap-2"><i class="fa-solid fa-clock text-emerald-500"></i><span class="font-semibold">${it}</span></div>
+          <button onclick="removeScheduleItem(${idx})" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash text-xs"></i></button>
+        </div>
+      `).join('');
+    }
+
+    function changeScheduleDay(d) {
+      activeScheduleDay = d;
+      renderSchedule();
+    }
+
+    function openScheduleModal() { document.getElementById('modal-schedule-add').classList.remove('hidden'); }
+    function closeScheduleModal() { document.getElementById('modal-schedule-add').classList.add('hidden'); }
+    function saveScheduleSlot() {
+      const title = document.getElementById('sched-title-inp').value.trim();
+      const from = document.getElementById('sched-from-inp').value;
+      const to = document.getElementById('sched-to-inp').value;
+      if (!title) return;
+      scheduleMap[activeScheduleDay].push(`${from} - ${to}: ${title}`);
+      document.getElementById('sched-title-inp').value = '';
+      closeScheduleModal();
+      renderSchedule();
+      showNotice('تمت إضافة الموعد للجدول الأسبوعي 📅');
+    }
+
+    function removeScheduleItem(idx) {
+      scheduleMap[activeScheduleDay].splice(idx, 1);
+      renderSchedule();
+    }
+
+    // 5. قارئ الكتب والملازم PDF
+    function renderPdf() {
+      document.getElementById('pdf-input-page').value = pdfState.page;
+      document.getElementById('pdf-max-page').innerText = pdfState.total;
+      if (pdfState.uploadedDoc) {
+        pdfState.uploadedDoc.getPage(pdfState.page).then(page => {
+          const canvas = document.getElementById('pdf-canvas-render');
+          const ctx = canvas.getContext('2d');
+          const viewport = page.getViewport({ scale: 1.3 });
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          page.render({ canvasContext: ctx, viewport: viewport });
+        });
+      } else {
+        document.getElementById('pdf-body-text').innerHTML = pdfState.pages[pdfState.page - 1] || pdfState.pages[0];
+      }
+    }
+
+    function navPdf(d) {
+      pdfState.page = Math.max(1, Math.min(pdfState.total, pdfState.page + d));
+      renderPdf();
+    }
+
+    function jumpPdf(val) {
+      pdfState.page = Math.max(1, Math.min(pdfState.total, parseInt(val) || 1));
+      renderPdf();
+    }
+
+    function handlePdfUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      document.getElementById('pdf-name-label').innerText = file.name;
+      const reader = new FileReader();
+      reader.onload = function() {
+        const typedarray = new Uint8Array(this.result);
+        if (window.pdfjsLib) {
+          pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+            pdfState.uploadedDoc = pdf;
+            pdfState.total = pdf.numPages;
+            pdfState.page = 1;
+            document.getElementById('pdf-body-text').classList.add('hidden');
+            document.getElementById('pdf-canvas-render').classList.remove('hidden');
+            renderPdf();
+            showNotice('تم فتح ملف PDF بنجاح!');
+          });
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // 6. الآلة الحاسبة العلمية
+    function calcAddChar(c) {
+      const s = document.getElementById('calc-screen');
+      s.innerText = (s.innerText === '0' && c !== '.') ? c : s.innerText + c;
+    }
+    function calcClearScreen() {
+      document.getElementById('calc-screen').innerText = '0';
+      document.getElementById('calc-history-bar').innerText = '';
+    }
+    function calcSci(op) {
+      const s = document.getElementById('calc-screen');
+      const v = parseFloat(s.innerText) || 0;
+      if (op === 'sin') s.innerText = Math.sin(v * Math.PI / 180).toFixed(4);
+      if (op === 'cos') s.innerText = Math.cos(v * Math.PI / 180).toFixed(4);
+      if (op === 'sqrt') s.innerText = Math.sqrt(v).toFixed(4);
+    }
+    function calcEvaluate() {
+      const s = document.getElementById('calc-screen');
+      try {
+        const res = Function("'use strict'; return (" + s.innerText + ")")();
+        document.getElementById('calc-history-bar').innerText = s.innerText + ' =';
+        s.innerText = res;
+      } catch (e) {
+        s.innerText = 'خطأ';
+        setTimeout(() => s.innerText = '0', 1000);
+      }
+    }
+
+    // 7. المصحف الشريف كاملاً (114 سورة) مع التفسير وتلاوة الشيوخ
+    function toArabicDigits(num) {
+      return String(num).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+    }
+
+    function initQuran() {
+      const sel = document.getElementById('quran-surah-picker');
+      sel.innerHTML = ALL_114_SURAHS.map((s, idx) => `<option value="${idx+1}">${idx+1}. سورة ${s}</option>`).join('');
+      selectSurah(1);
+    }
+
+    async function selectSurah(id) {
+      quranState.surah = parseInt(id);
+      const name = ALL_114_SURAHS[quranState.surah - 1];
+      document.getElementById('mushaf-surah-name').innerText = name;
+      document.getElementById('mushaf-bismillah').style.display = (quranState.surah === 9) ? 'none' : 'block';
+
+      const versesBox = document.getElementById('mushaf-verses-area');
+      const tafsirBox = document.getElementById('mushaf-tafsir-area');
+
+      // عرض فوري لسورة الفاتحة أو جلب آيات السورة وتفسيرها الميسر
+      if (quranState.surah === 1) {
+        versesBox.innerHTML = `
+          الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ <span class="ayah-marker">١</span>
+          الرَّحْمَٰنِ الرَّحِيمِ <span class="ayah-marker">٢</span>
+          مَالِكِ يَوْمِ الدِّينِ <span class="ayah-marker">٣</span>
+          إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ <span class="ayah-marker">٤</span>
+          اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ <span class="ayah-marker">٥</span>
+          صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ <span class="ayah-marker">٦</span>
+        `;
+        tafsirBox.innerHTML = `
+          <p><b>(١-٣)</b> الثناء الكامل لله رب الخلائق أجمعين، ذي الرحمة الواسعة، المتصرف وحده في يوم الحساب.</p>
+          <p><b>(٤-٧)</b> نخصك وحدك بالعبادة والاستعانة، فارشدنا وثبتنا على طريق الحق الذي أنعمت على أهله من النبيين والصديقين.</p>
+        `;
+      } else {
+        versesBox.innerHTML = `<span class="text-base text-amber-700">جاري تحميل آيات سورة ${name} وتفسيرها...</span>`;
+        try {
+          const [resQuran, resTafsir] = await Promise.all([
+            fetch(`https://api.alquran.cloud/v1/surah/${quranState.surah}/quran-uthmani`),
+            fetch(`https://api.alquran.cloud/v1/surah/${quranState.surah}/ar.muyassar`)
+          ]);
+          const dataQ = await resQuran.json();
+          const dataT = await resTafsir.json();
+          if (dataQ.code === 200) {
+            versesBox.innerHTML = dataQ.data.ayahs.map(a => `${a.text} <span class="ayah-marker">${toArabicDigits(a.numberInSurah)}</span>`).join(' ');
+            tafsirBox.innerHTML = dataT.data.ayahs.map(t => `<p><b>(${toArabicDigits(t.numberInSurah)})</b> ${t.text}</p>`).join('');
+          }
+        } catch (err) {
+          versesBox.innerHTML = `سورة ${name} كاملة - اضغط على زر "تشغيل التلاوة" للاستماع إليها بصوت الشيخ المختار.`;
+          tafsirBox.innerHTML = `<p>سورة ${name} من سور القرآن الكريم المباركة التي تهدي للتي هي أقوم.</p>`;
+        }
+      }
+
+      if (quranState.playing) playQuranAudio();
+    }
+
+    function selectSheikh(s) {
+      quranState.sheikh = s;
+      if (quranState.playing) playQuranAudio();
+    }
+
+    function toggleQuranRecitation() {
+      if (quranState.playing) {
+        document.getElementById('quran-player-node').pause();
+        quranState.playing = false;
+        document.getElementById('btn-quran-audio').innerHTML = '<i class="fa-solid fa-play ml-1"></i><span>تشغيل التلاوة</span>';
+      } else {
+        playQuranAudio();
+      }
+    }
+
+    function playQuranAudio() {
+      const player = document.getElementById('quran-player-node');
+      const pad = String(quranState.surah).padStart(3, '0');
+      player.src = `${SHEIKH_SERVERS[quranState.sheikh]}${pad}.mp3`;
+      player.play().then(() => {
+        quranState.playing = true;
+        document.getElementById('btn-quran-audio').innerHTML = '<i class="fa-solid fa-pause ml-1"></i><span>إيقاف التلاوة</span>';
+        showNotice('جاري تشغيل تلاوة سورة ' + ALL_114_SURAHS[quranState.surah - 1]);
+      }).catch(() => {
+        showNotice('تلاوة سورة ' + ALL_114_SURAHS[quranState.surah - 1]);
+      });
+      player.onended = () => {
+        quranState.playing = false;
+        document.getElementById('btn-quran-audio').innerHTML = '<i class="fa-solid fa-play ml-1"></i><span>تشغيل التلاوة</span>';
+      };
+    }
+
+    // 8. مشغل يوتيوب للدراسة
+    function playCustomYt() {
+      const u = document.getElementById('yt-link-input').value.trim();
+      const m = u.match(/(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#&?]*)/);
+      const id = (m && m[1]) ? m[1] : u;
+      if (id) setYtVideo(id);
+    }
+
+    function setYtVideo(id) {
+      document.getElementById('yt-player-frame').src = 'https://www.youtube.com/embed/' + id;
+      showNotice('تم تشغيل فيديو الدراسة 🎥');
+    }
+
+    // 9. لوحة تحكم المالك والرسوم البيانية
+    let chartInstance = null;
+    function renderOwnerChart() {
+      const ctx = document.getElementById('owner-traffic-chart');
+      if (!ctx || !window.Chart) return;
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
+          datasets: [{
+            label: 'زيارات الطلاب اليومية',
+            data: [1820, 2150, 2520, 2310, 2780, 2940, 2490],
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            fill: true,
+            tension: 0.35
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function renderOwnerChannels() {
+      const box = document.getElementById('owner-channels-list');
+      box.innerHTML = ownerChannels.map(c => `
+        <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
+          <div><b>${c.name}</b> <span class="text-slate-400 font-mono mr-2">(${c.ytId})</span></div>
+          <div class="flex gap-2">
+            <button onclick="setYtVideo('${c.ytId}'); switchTab('youtube');" class="text-emerald-600 font-bold">تشغيل</button>
+            <button onclick="deleteOwnerChannel(${c.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addOwnerChannel(e) {
+      e.preventDefault();
+      const name = document.getElementById('owner-chan-name').value.trim();
+      const raw = document.getElementById('owner-chan-id').value.trim();
+      const m = raw.match(/(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#&?]*)/);
+      const ytId = (m && m[1]) ? m[1] : raw;
+      ownerChannels.push({ id: Date.now(), name, ytId });
+      document.getElementById('owner-chan-name').value = '';
+      document.getElementById('owner-chan-id').value = '';
+      renderOwnerChannels();
+      showNotice('تمت إضافة القناة في لوحة المالك');
+    }
+
+    function deleteOwnerChannel(id) {
+      ownerChannels = ownerChannels.filter(c => c.id !== id);
+      renderOwnerChannels();
+    }
+
+    // 10. التنقل العام والوضع الليلي
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('bg-emerald-50', 'text-emerald-700', 'dark:bg-emerald-950/60', 'dark:text-emerald-400');
+        b.classList.add('text-slate-600', 'dark:text-slate-400');
+      });
+      const active = document.getElementById('btn-tab-' + tabId);
+      if (active) {
+        active.classList.add('bg-emerald-50', 'text-emerald-700', 'dark:bg-emerald-950/60', 'dark:text-emerald-400');
+        active.classList.remove('text-slate-600', 'dark:text-slate-400');
+      }
+      if (tabId === 'owner') {
+        setTimeout(renderOwnerChart, 50);
+        renderOwnerChannels();
+      }
+    }
+
+    function toggleTheme() { document.documentElement.classList.toggle('dark'); }
+    function openAuthModal() { document.getElementById('modal-google-auth').classList.remove('hidden'); }
+    function closeAuthModal() { document.getElementById('modal-google-auth').classList.add('hidden'); }
+    function performLogin(name) {
+      document.getElementById('user-display').innerText = name;
+      closeAuthModal();
+      showNotice('تم تسجيل الدخول عبر Google: ' + name);
+    }
+
+    // تشغيل التطبيق عند فتح الصفحة
+    window.onload = () => {
+      renderTimerText();
+      renderTasks();
+      renderSchedule();
+      renderPdf();
+      initQuran();
+      renderOwnerChannels();
+    };
+  </script>
+</body>
+</html>
